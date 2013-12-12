@@ -7,6 +7,6 @@ module Gecko
       { :text => source, :value => measurement['value'] }
     end
 
-    { :item => items }
+    { :item => items, :type => 'reverse' }
   end
 end
