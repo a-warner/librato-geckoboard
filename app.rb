@@ -9,6 +9,8 @@ ENV['RACK_ENV'] ||= 'development'
   Dir[File.dirname(__FILE__)+"/#{path}/*.rb"].each { |file| require file }
 end
 
+Librato::Metrics.authenticate ENV.fetch('LIBRATO_EMAIL'), ENV.fetch('LIBRATO_API_KEY')
+
 get '/' do
   "Ok"
 end
