@@ -38,7 +38,11 @@ class LibratoGeckoboard < Sinatra::Application
     raise BadRequest, "metric_name unspecified" unless metric_name = params[:metric_name]
     metric_name = sanitize_librato_metric_name(metric_name)
 
-    librato_response = Librato::Metrics.get_metric(metric_name, :count => 1, :resolution => 60)
+    begin
+      librato_response = Librato::Metrics.get_metric(metric_name, :count => 1, :resolution => 60)
+    rescue Librato::Metrics::NotFound
+      raise BadRequest, "Metric #{metric_name.inspect} not found"
+    end
 
     json :content => Gecko.librato_to_gecko(librato_response)
   end
