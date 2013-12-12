@@ -16,6 +16,10 @@ Librato::Metrics.authenticate ENV.fetch('LIBRATO_EMAIL'), ENV.fetch('LIBRATO_API
 class LibratoGeckoboard < Sinatra::Application
   BadRequest = Class.new(StandardError)
 
+  use Rack::Auth::Basic do |username, password|
+    username == ENV.fetch('BASIC_AUTH_USERNAME') && password == ENV.fetch('BASIC_AUTH_PASSWORD')
+  end
+
   def json(options)
     content_type :json
     status options.fetch(:status, 200)
