@@ -39,7 +39,7 @@ class LibratoGeckoboard < Sinatra::Application
     metric_name = sanitize_librato_metric_name(metric_name)
 
     begin
-      librato_response = Librato::Metrics.get_metric(metric_name, :count => 1, :resolution => 60)
+      librato_response = Librato::Metrics.get_metric(metric_name, :count => 2, :resolution => 60)
     rescue Librato::Metrics::NotFound
       raise BadRequest, "Metric #{metric_name.inspect} not found"
     end

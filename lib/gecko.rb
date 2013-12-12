@@ -2,8 +2,9 @@ module Gecko
   extend self
 
   def librato_to_gecko(librato_metric_response)
-    items = librato_metric_response['measurements'].map do |source, measurements|
-      { :text => source, :value => measurements.map { |m| m['value'] }.inject(:+) }
+    source, measurements = librato_metric_response['measurements'].first
+    items = measurements.sort_by { |m| m['measure_time'] }.map do |measurement|
+      { :text => source, :value => measurement['value'] }
     end
 
     { :item => items }
