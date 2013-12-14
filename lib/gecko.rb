@@ -2,7 +2,7 @@ module Gecko
   extend self
 
   def for_type(type)
-    const_get(type)
+    const_get(type.to_s.camelize)
   end
 
   Error = Class.new(StandardError)
