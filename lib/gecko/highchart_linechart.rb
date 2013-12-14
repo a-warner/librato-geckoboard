@@ -6,15 +6,26 @@ module Gecko
       end)
     end
 
+    private
+
     def create_series(name, measurements)
-      { name: name, data: measurements.values.first.sort_by { |m| m['measure_time'] }.map { |m| m['value'] } }
+      data = measurements.values.first.sort_by { |m| m['measure_time'] }.map do |m|
+        [milliseconds(m['measure_time']), m['value']]
+      end
+
+      { name: name, data: data }
     end
 
     def linechart_response(series)
       { chart: { renderTo: 'container' },
         title: { text: params[:chart_title] || 'Untitled' },
         credits: { enabled: false },
+        xAxis: { type: 'datetime' },
         series: series }
+    end
+
+    def milliseconds(time)
+      time.to_i * 1000
     end
   end
 end
