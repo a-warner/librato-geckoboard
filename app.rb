@@ -17,7 +17,7 @@ class LibratoGeckoboard < Sinatra::Application
   class BadRequest < StandardError
     attr_reader :cause
     def initialize(message, cause)
-      super(message + ", cause is #{cause}")
+      super(message + ", cause is #{cause.inspect}")
       @cause = cause
     end
   end
@@ -38,9 +38,9 @@ class LibratoGeckoboard < Sinatra::Application
 
   get '/metrics/poll/:type' do
     begin
-      json :content => Gecko.for_type(params[:type]).new(params).response
+      json :content => Gecko.for_type(params[:type]).new(params).widget
     rescue Gecko::Error => e
-      raise BadRequest, e.message, e
+      raise BadRequest.new(e.message, e)
     end
   end
 

@@ -7,6 +7,7 @@ module Gecko
 
   Error = Class.new(StandardError)
   InvalidArguments = Class.new(Error)
+  MetricNotFound = Class.new(Error)
 
   class Base
     extend Forwardable
@@ -17,9 +18,23 @@ module Gecko
     end
 
     def metric_name
-      raise InvalidArguments, "metric_name unspecified" unless name = params[:metric_name]
+      names = metric_names
+      raise InvalidArguments, "only 1 metric name expected" unless names.one?
 
-      sanitize_librato_metric_name(name)
+      names.first
+    end
+
+    def metric_names
+      names = Array(params[:metric_name]).flatten.compact
+      raise InvalidArguments, "metric_name unspecified" unless names.any?
+
+      names.map(&method(:sanitize_librato_metric_name))
+    end
+
+    def widget
+      response
+    rescue Librato::Metrics::NotFound => e
+      raise MetricNotFound, e.inspect
     end
 
     private
