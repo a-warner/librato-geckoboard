@@ -8,13 +8,19 @@ Dotenv.load
 ENV['RACK_ENV'] ||= 'development'
 
 ['config', 'lib'].each do |path|
-  Dir[File.dirname(__FILE__)+"/#{path}/*.rb"].each { |file| require file }
+  Dir[File.dirname(__FILE__)+"/#{path}/**/*.rb"].sort.each { |file| require file }
 end
 
 Librato::Metrics.authenticate ENV.fetch('LIBRATO_EMAIL'), ENV.fetch('LIBRATO_API_KEY')
 
 class LibratoGeckoboard < Sinatra::Application
-  BadRequest = Class.new(StandardError)
+  class BadRequest < StandardError
+    attr_reader :cause
+    def initialize(message, cause)
+      super(message + ", cause is #{cause}")
+      @cause = cause
+    end
+  end
 
   use Rack::Auth::Basic do |username, password|
     username == ENV.fetch('BASIC_AUTH_USERNAME') && password == ENV.fetch('BASIC_AUTH_PASSWORD')
@@ -26,25 +32,16 @@ class LibratoGeckoboard < Sinatra::Application
     options.fetch(:content).to_json
   end
 
-  def sanitize_librato_metric_name(metric_name)
-    metric_name.gsub(/[^A-Za-z0-9_.:-]/, '')
-  end
-
   get '/' do
     "Ok"
   end
 
-  get '/metrics/poll' do
-    raise BadRequest, "metric_name unspecified" unless metric_name = params[:metric_name]
-    metric_name = sanitize_librato_metric_name(metric_name)
-
+  get '/metrics/poll/:type' do
     begin
-      librato_response = Librato::Metrics.get_metric(metric_name, :count => 2, :resolution => 60)
-    rescue Librato::Metrics::NotFound
-      raise BadRequest, "Metric #{metric_name.inspect} not found"
+      json :content => Gecko.for_type(params[:type]).new(params).response
+    rescue Gecko::Error => e
+      raise BadRequest, e.message, e
     end
-
-    json :content => Gecko.librato_to_gecko(librato_response)
   end
 
   error BadRequest do |e|

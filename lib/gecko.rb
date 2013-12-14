@@ -1,12 +1,33 @@
 module Gecko
   extend self
 
-  def librato_to_gecko(librato_metric_response)
-    source, measurements = librato_metric_response['measurements'].first
-    items = measurements.sort_by { |m| m['measure_time'] }.map do |measurement|
-      { :text => source, :value => measurement['value'] }
+  def for_type(type)
+    const_get(type)
+  end
+
+  Error = Class.new(StandardError)
+  InvalidArguments = Class.new(Error)
+
+  class Base
+    extend Forwardable
+    def_delegators :'Librato::Metrics', :get_metric, :get_measurements
+
+    def initialize(params)
+      @params = params
     end
 
-    { :item => items, :type => 'reverse' }
+    def metric_name
+      raise InvalidArguments, "metric_name unspecified" unless name = params[:metric_name]
+
+      sanitize_librato_metric_name(name)
+    end
+
+    private
+
+    def sanitize_librato_metric_name(metric_name)
+      metric_name.gsub(/[^A-Za-z0-9_.:-]/, '')
+    end
+
+    attr_reader :params
   end
 end
