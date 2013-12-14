@@ -21,6 +21,7 @@ module Gecko
         title: { text: params[:chart_title] || 'Untitled' },
         credits: { enabled: false },
         xAxis: { type: 'datetime' },
+        legend: { align: 'center', verticalAlign: 'top', y: 20 },
         series: series }
     end
 
